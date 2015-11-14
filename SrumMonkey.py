@@ -1,4 +1,4 @@
-# Tool for parsing SRUM analysis
+# A tool to convert and analyse SRUM
 #
 # Copyright (C) 2015, G-C Partners, LLC <dev@g-cpartners.com>
 # G-C Partners licenses this file to you under the Apache License, Version
