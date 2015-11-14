@@ -1,0 +1,13 @@
+srum2sqlite Uses the following libraries.
+
+libesedb is a library to access the Extensible Storage Engine (ESE) Database File (EDB) format.
+
+The ESE database format is used in may different applications like Windows Search, Windows Mail, Exchange, Active Directory, etc.
+
+Project information:
+* Status: experimental
+* Licence: LGPLv3+
+
+python-registry
+python-registry is a pure Python library that provides read-only access to Windows Registry files. These include NTUSER.DAT, userdiff, and SAM. The interface is two-fold: a high-level interface suitable for most tasks, and a low level set of parsing objects and methods which may be used for advanced study of the Windows Registry. The library is portable across all major platforms.
+Licence: Apache 2.0 license
