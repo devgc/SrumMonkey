@@ -81,6 +81,22 @@ def GetOptions():
         help='SOFTWARE Hive for Interface Enumeration'
     )
     
+    options.add_argument(
+        '--no_reports',
+        dest='report_flag',
+        action="store_false",
+        default=True,
+        help='Do not run reports'
+    )
+    
+    options.add_argument(
+        '--reports_only',
+        dest='reports_only_flag',
+        action="store_true",
+        default=False,
+        help='Do not run reports'
+    )
+    
     return options
 
 def Main():
@@ -88,28 +104,183 @@ def Main():
     arguements = GetOptions()
     options = arguements.parse_args()
     
+    if not os.path.isdir(options.outpath):
+        os.makedirs(options.outpath)
+        
+    options.output_db = os.path.join(options.outpath,'SRUM.db')
+    
+    #If Database exists, delete it#
     if os.path.isfile(options.output_db):
         os.remove(options.output_db)
     
-    srumHandler = SrumHandler(
-        options
-    )
+    if not options.reports_only_flag:
+        srumHandler = SrumHandler(
+            options
+        )
+        
+        srumHandler.ConvertDb()
+        
+        if options.software_hive is not None:
+            if os.path.isfile(options.software_hive):
+                #Enumerate Registry Here#
+                rhandler = RegistryHandler(
+                    options
+                )
+                
+                rhandler.EnumerateRegistryValues()
+                
+                pass
+            else:
+                logging.error('No such software_hive file: {}'.format(options.software_hive))
     
-    srumHandler.ConvertDb()
+    if options.report_flag is True:
+        reportHandler = ReportHandler(
+            options
+        )
+        
+        reportHandler.RunReports()
     
-    if options.software_hive is not None:
-        if os.path.isfile(options.software_hive):
-            #Enumerate Registry Here#
-            rhandler = RegistryHandler(
-                options
+class ReportHandler(object):
+    def __init__(self,options):
+        '''Create ReportHandler to generate reports based off of the xlsx_templates folder'''
+        self.options = options
+        self.output_db = self.options.output_db
+        self.sql_files = []
+        
+        self.dbConfig = DbConfig(
+            dbname=self.output_db
+        )
+        
+        self.dbHandler = DbHandler(
+            self.dbConfig
+        )
+    
+    def RunReports(self,sql_folder='xlsx_templates'):
+        '''Launch Report Creation'''
+        #Look in our sql dir for sql files to execute#
+        for subdir, dirs, files in os.walk(sql_folder):
+            #For each file#
+            for file in files:
+                #That ends with .sql#
+                if file.endswith('.yml'):
+                    self.sql_files.append(
+                        os.path.join(subdir, file)
+                    )
+        
+        for sqlfile in self.sql_files:
+            sqlfile_basename = os.path.basename(sqlfile)
+            print 'Processing File {}'.format(sqlfile_basename)
+            
+            reporter = Reporter(
+                self.options,
+                sqlfile,
+                self.dbHandler
             )
             
-            rhandler.EnumerateRegistryValues()
-            
-            pass
-        else:
-            logging.error('No such software_hive file: {}'.format(options.software_hive))
+            reporter.WriteReport()
     
+class Reporter():
+    def __init__(self,options,sqlfile,dbHandler):
+        '''Create Reporter using options from .yml template'''
+        self.options = options
+        self.sqlfilename = sqlfile
+        self.dbHandler = dbHandler
+        
+        with open(self.sqlfilename,'r') as sqlfh:
+            data = sqlfh.read()
+            
+        sqlfh.close()
+        
+        self.properties = yaml.load(
+            data
+        )
+        
+    def WriteReport(self):
+        '''Write report to xlsx.
+        
+        '''
+        #Open XLSX File#
+        filename = os.path.join(
+            self.options.outpath,
+            self.properties['workbook_name']
+        )
+        logging.debug('creating workbook {}'.format(filename))
+        
+        #Create Workbook#
+        workbook = xlsxwriter.Workbook(
+            filename
+        )
+        
+        #Add Column Formats#
+        column_formats = {}
+        for column_number in self.properties['xlsx_column_formats'].keys():
+            if 'format' in self.properties['xlsx_column_formats'][column_number].keys():
+                column_formats[column_number] = workbook.add_format(
+                    self.properties['xlsx_column_formats'][column_number]['format']
+                )
+        
+        #Create Worksheet#
+        worksheet = workbook.add_worksheet(
+            self.properties['worksheet_name']
+        )
+        
+        #Iterate Records#
+        column_cnt = 0
+        row_start = 1
+        row_num = row_start
+        header_flag = False
+        for column_names,record in self.dbHandler.FetchRecords(self.properties['sql_query']):
+            if not header_flag:
+                column_cnt = len(column_names)
+                worksheet.write_row(0,0,column_names)
+                header_flag = True
+                
+            row = tuple(record)
+            
+            c_cnt = 0
+            for value in row:
+                formatter = None
+                
+                #Check for special treatment for column#
+                if c_cnt in column_formats.keys():
+                    if 'format' in self.properties['xlsx_column_formats'][c_cnt].keys():
+                        formatter = column_formats[c_cnt]
+                    
+                    if 'column_type' in self.properties['xlsx_column_formats'][c_cnt].keys():
+                        '''Supported column_type's ['datetime']'''
+                        if self.properties['xlsx_column_formats'][c_cnt]['column_type'] == 'datetime':
+                            value = datetime.datetime.strptime(
+                                str(value),
+                                self.properties['xlsx_column_formats'][c_cnt]['strptime']
+                            )
+                    
+                worksheet.write(
+                    row_num,
+                    c_cnt,
+                    value,
+                    formatter
+                )
+                
+                c_cnt = c_cnt + 1
+            row_num = row_num+1
+        
+        worksheet.autofilter(
+            0,
+            0,
+            row_num - 1,
+            column_cnt - 1
+        )
+        
+        #Freeze Panes#
+        if 'freeze_panes' in self.properties:
+            worksheet.freeze_panes(
+                self.properties['freeze_panes']['row'],
+                self.properties['freeze_panes']['columns'],
+            )
+        
+        workbook.close()
+        logging.info('finished writing records')
+
 class RegistryHandler():
     '''Registry Operations'''
     INTERFACE_COLUMN_MAPPING = {
@@ -540,10 +711,12 @@ def GetOleTimeStamp(raw_timestamp):
     
     new_datetime = origDateTime + timeDelta
   
-    dt_string = new_datetime.strftime("%Y-%m-%d %H:%M:%S.%f")
-    return dt_string
+    #new_datetime = new_datetime.strftime("%Y-%m-%d %H:%M:%S.%f")
+    
+    return new_datetime
 
 def GetWinTimeStamp(raw_timestamp):
+    '''Return Datetime from raw Win32Timestamp'''
     timestamp = struct.unpack(
         "Q",
         raw_timestamp
@@ -568,8 +741,9 @@ def GetWinTimeStamp(raw_timestamp):
     )
     
     new_datetime = origDateTime + timeDelta
-    dt_string = new_datetime.strftime("%Y-%m-%d %H:%M:%S.%f")
-    return dt_string
+    #new_datetime = new_datetime.strftime("%Y-%m-%d %H:%M:%S.%f")
+    
+    return new_datetime
 
 class ChannelHints(dict):
     def __init__(self,data):
@@ -674,10 +848,47 @@ class DbHandler():
         
         dbh = sqlite3.connect(
             self.db_config.db,
-            timeout=10000
+            timeout=10000,
+            detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES
         )
         
         return dbh
+    
+    def FetchRecords(self,sql_string):
+        dbh = self.GetDbHandle()
+        dbh.row_factory = sqlite3.Row
+        
+        column_names = []
+        
+        #Register User Functions#
+        RegisterFunctions(dbh)
+        
+        sql_c = dbh.cursor()
+        
+        sql_c.execute(sql_string)
+        
+        for desc in sql_c.description:
+            column_names.append(
+                desc[0]
+            )
+        
+        
+        for record in sql_c:
+            yield column_names,record
+    
+    def GetColumnInfo(self,sql_string):
+        dbh = self.GetDbHandle()
+        dbh.row_factory = sqlite3.Row
+        
+        #Register User Functions#
+        RegisterFunctions(dbh)
+        
+        sql_c = dbh.cursor()
+        
+        sql_c.execute(sql_string)
+        
+        row = sql_c.fetchone()
+    
 
 if __name__ == '__main__':
     Main()
