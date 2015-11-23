@@ -1,0 +1,31 @@
+### A Report Tempate ###
+#The XLSX report to use#
+workbook_name: 'SrumReport.xlsx'
+#The worksheet/tab to create the report in#
+worksheet_name: 'NetworkUsageByApp'
+#If you want to freeze panes#
+freeze_panes:
+    row: 1
+    columns: 7
+#If you want to special format columns#
+xlsx_column_formats:
+    0: 
+        column_type: datetime
+        strptime: '%Y-%m-%d %H:%M:%S'
+        format: {'num_format': 'mm/dd/yyyy hh:mm:ss'}
+#The SQLite Query to run#
+sql_query: |
+    SELECT
+    NetworkUsageData.TimeStamp,
+    SruDbIdMapTable.IdBlob,
+    basename(SruDbIdMapTable.IdBlob) AS AppName,
+    NetworkUsageData.BytesSent,
+    NetworkUsageData.BytesRecvd,
+    WlanSvcInterfaceProfiles.Name AS InterfaceName,
+    NetworkUsageData.UserId
+    FROM
+    NetworkUsageData
+    INNER JOIN WlanSvcInterfaceProfiles ON 
+    NetworkUsageData.L2ProfileId = WlanSvcInterfaceProfiles.ProfileIndex
+    INNER JOIN SruDbIdMapTable ON 
+    NetworkUsageData.AppId = SruDbIdMapTable.IdIndex
