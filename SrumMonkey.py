@@ -21,6 +21,15 @@ import os
 import re
 import argparse
 import copy
+import xlsxwriter
+import yaml
+
+logging.basicConfig(
+    level = logging.DEBUG
+)
+
+#Import our custom SQLite user functions#
+from CustomSqlFunctions import *
 
 #Requires Metz' libesedb
 #https://github.com/libyal/libesedb
