@@ -483,6 +483,10 @@ class SrumHandler():
     }
 
     def __init__(self,options):
+        '''Create a SrumHandler
+        
+        Args:
+            options: Options'''
         self.srum_db = options.srum_db
         self.output_db = options.output_db
         
@@ -506,7 +510,6 @@ class SrumHandler():
         #new_table_name = new_table_name.replace('-','')
         
         return new_table_name
-        
         
     def ConvertDb(self):
         '''Convert SRU Database to a SQLite Database'''
@@ -552,6 +555,10 @@ class SrumHandler():
             )
             
     def _CreateTable(self,table):
+        '''Create a table
+        
+        Args:
+            table: A pyesedb table object'''
         column_names = []
         for column in table.columns:
             column_names.append(column.name)
@@ -568,6 +575,13 @@ class SrumHandler():
         )
         
     def _CreateFieldMapping(self,table):
+        '''Create a field mapping (table schema) for the SQLite table
+        
+        Args:
+            table: A pyesedb table object
+            
+        Return:
+            field_mapping: A dictionary of column to type mappings'''
         field_mapping = {}
         for column in table.columns:
             key = column.name
@@ -589,7 +603,14 @@ class SrumHandler():
         return field_mapping
     
     def _EnumerateRecord(self,num_of_columns,record):
-        '''Enumerate vales for a record'''
+        '''Enumerate vales for a record
+        
+        Args:
+            num_of_columns: The number of columns in the record
+            record: a pyesedb record object
+            
+        Returns:
+            values: the record as a dictionary'''
         values = {}
         for index in range(0,num_of_columns):
             self.CURRENT_VALUES = values
@@ -603,7 +624,14 @@ class SrumHandler():
         return values
         
     def _GetColumnValueFromRecord(self,record,index):
-        '''Get enumerated value based off of column or type'''
+        '''Get enumerated value based off of column and/or type
+        
+        Args:
+            record: a pyesedb record object
+            index: the column index for record
+        Return:
+            value: The value of a column for the record
+        '''
         item = {}
         value = None
         name = record.get_column_name(index)
@@ -677,6 +705,15 @@ class SrumHandler():
         return item
     
     def _GetCustomValue(self,custom_info,data):
+        '''Get a value from a column based off of defined criteria.
+        
+        Used to parse binary data within columns such as timestamps.
+        
+        Args:
+            custom_info: A columns info from SrumHandler.CUSTOM_COLUMNS
+            data: The raw data from a records column
+        Returns:
+            value: The custom value'''
         value = data
         if 'type' in custom_info:
             if custom_info['type'] == 'utf-16le':
@@ -691,8 +728,8 @@ class SrumHandler():
                 
         return value
 
-    
 def GetOleTimeStamp(raw_timestamp):
+    '''Return Datetime from raw OleTimestamp'''
     timestamp = struct.unpack(
         "d",
         raw_timestamp
