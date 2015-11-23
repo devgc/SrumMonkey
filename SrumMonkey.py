@@ -58,19 +58,18 @@ def GetOptions():
         dest='srum_db',
         action="store",
         type=unicode,
-        required=True,
         default=None,
         help='SRUM Database'
     )
     
     options.add_argument(
-        '--output_db',
-        dest='output_db',
+        '--outpath',
+        dest='outpath',
         required=True,
         action="store",
         type=unicode,
         default=None,
-        help='Output Database Name'
+        help='Output path where you want your reports and db'
     )
     
     options.add_argument(
