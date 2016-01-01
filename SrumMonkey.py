@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # A tool to convert and analyze SRUM
 #
 # Copyright (C) 2015, G-C Partners, LLC <dev@g-cpartners.com>
