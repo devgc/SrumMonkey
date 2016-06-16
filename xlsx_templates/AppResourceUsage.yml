@@ -1,0 +1,36 @@
+### A Report Tempate ###
+#The XLSX report to use#
+workbook_name: 'ApplicationResourceUsage.xlsx'
+#The worksheet/tab to create the report in#
+worksheet_name: 'ApplicationResourceUsage'
+#If you want to freeze panes#
+freeze_panes:
+    row: 1
+    columns: 14
+#If you want to special format columns#
+xlsx_column_formats:
+    1: 
+        column_type: datetime
+        strptime: '%Y-%m-%d %H:%M:%S'
+        format: {'num_format': 'mm/dd/yyyy hh:mm:ss'}
+#The SQLite Query to run#
+sql_query: |
+    SELECT
+    SruDbIdMapTable.IdBlob AS ApplicationName,
+    ApplicationResourceUsageData.TimeStamp,
+    ApplicationResourceUsageData.UserId,
+    ApplicationResourceUsageData.ForegroundBytesRead,
+    ApplicationResourceUsageData.ForegroundBytesWritten,
+    ApplicationResourceUsageData.ForegroundNumReadOperations,
+    ApplicationResourceUsageData.ForegroundNumWriteOperations,
+    ApplicationResourceUsageData.ForegroundNumberOfFlushes,
+    ApplicationResourceUsageData.BackgroundBytesRead,
+    ApplicationResourceUsageData.BackgroundBytesWritten,
+    ApplicationResourceUsageData.BackgroundNumReadOperations,
+    ApplicationResourceUsageData.BackgroundNumWriteOperations,
+    ApplicationResourceUsageData.BackgroundNumberOfFlushes,
+    ApplicationResourceUsageData.AppId
+    FROM
+    ApplicationResourceUsageData
+    INNER JOIN SruDbIdMapTable ON ApplicationResourceUsageData.AppId = SruDbIdMapTable.IdIndex
+    ORDER BY ApplicationName
