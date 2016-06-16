@@ -364,7 +364,7 @@ class RegistryHandler():
             self.outputDbConfig
         )
         
-        self.INTERFACE_COLUMN_LISTING = []
+        self.INTERFACE_COLUMN_LISTING = RegistryHandler.WLANSVCINTERFACEPROFILES_COLUMN_ORDER
         
     def _GetWlanSvcKeys(self):
         '''Insert wireless interface info into database'''
@@ -397,6 +397,9 @@ class RegistryHandler():
                                     profile_dict[value.name()] = self._GetValue(value)
                     
                     for key in profile_dict:
+                        if key not in RegistryHandler.WLANSVCINTERFACEPROFILES_COLUMN_MAPPING:
+                            RegistryHandler.WLANSVCINTERFACEPROFILES_COLUMN_MAPPING[key] = 'BLOB'
+                        
                         if key not in self.INTERFACE_COLUMN_LISTING:
                             self.INTERFACE_COLUMN_LISTING.append(key)
                             
