@@ -1,8 +1,8 @@
 ### A Report Tempate ###
 #The XLSX report to use#
-workbook_name: 'SrumReport.xlsx'
+workbook_name: 'WirelessNetworkUsageByApp.xlsx'
 #The worksheet/tab to create the report in#
-worksheet_name: 'NetworkUsageByApp'
+worksheet_name: 'WirelessNetworkUsageByApp'
 #If you want to freeze panes#
 freeze_panes:
     row: 1
