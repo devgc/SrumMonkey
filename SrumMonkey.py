@@ -198,9 +198,7 @@ class Reporter():
         )
         
     def WriteReport(self):
-        '''Write report to xlsx.
-        
-        '''
+        '''Write report to xlsx.'''
         #Open XLSX File#
         filename = os.path.join(
             self.options.outpath,
@@ -231,6 +229,7 @@ class Reporter():
         row_start = 1
         row_num = row_start
         header_flag = False
+        
         for column_names,record in self.dbHandler.FetchRecords(self.properties['sql_query']):
             if not header_flag:
                 column_cnt = len(column_names)
@@ -266,26 +265,40 @@ class Reporter():
                 c_cnt = c_cnt + 1
             row_num = row_num+1
         
-        worksheet.autofilter(
-            0,
-            0,
-            row_num - 1,
-            column_cnt - 1
-        )
-        
-        #Freeze Panes#
-        if 'freeze_panes' in self.properties:
-            worksheet.freeze_panes(
-                self.properties['freeze_panes']['row'],
-                self.properties['freeze_panes']['columns'],
+        if header_flag == False:
+            worksheet.write(
+                0,
+                0,
+                'No records returned for query',
+                None
             )
+            worksheet.write(
+                1,
+                0,
+                "Query: {}".format(self.properties['sql_query']),
+                None
+            )
+        else:
+            worksheet.autofilter(
+                0,
+                0,
+                row_num - 1,
+                column_cnt - 1
+            )
+        
+            #Freeze Panes#
+            if 'freeze_panes' in self.properties:
+                worksheet.freeze_panes(
+                    self.properties['freeze_panes']['row'],
+                    self.properties['freeze_panes']['columns'],
+                )
         
         workbook.close()
         logging.info('finished writing records')
 
 class RegistryHandler():
     '''Registry Operations'''
-    INTERFACE_COLUMN_MAPPING = {
+    WLANSVCINTERFACEPROFILES_COLUMN_MAPPING = {
         'ProfileIndex':'INTEGER',
         'succeeded':'BLOB',
         'ProfileGuid':'TEXT',
