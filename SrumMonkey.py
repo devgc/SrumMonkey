@@ -848,7 +848,11 @@ class DbHandler():
         
         cursor = dbh.cursor()
         
-        cursor.execute(string)
+        try:
+            cursor.execute(string)
+        except Exception as error:
+            error_str = u"ERROR {}\nSQL_STRING: {}".format(str(error),string)
+            raise Exception(error_str)
         
     def CreateInsertString(self,table,row,column_order,INSERT_STR=None):
         nco = []
@@ -895,11 +899,9 @@ class DbHandler():
             
             try:
                 sql_c.execute(sql,in_row)
-            except MySQLdb.IntegrityError:
-                #MySQL Duplicate on primary key#
-                pass
             except Exception as e:
-                print "[ERROR] {}\n[SQL] {}\n[ROW] {}".format(str(e),sql,str(row))
+                error_str = "[ERROR] {}\n[SQL] {}\n[ROW] {}".format(str(e),sql,str(row))
+                raise Exception('SQL Error. Error: {}'.format(error_str))
         
         dbh.commit()
     
