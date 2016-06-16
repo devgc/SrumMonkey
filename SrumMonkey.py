@@ -298,6 +298,20 @@ class RegistryHandler():
         'NameLength':'INTEGER',
         'Name':'TEXT'
     }
+    WLANSVCINTERFACEPROFILES_COLUMN_ORDER = [
+        'ProfileIndex',
+        'succeeded',
+        'ProfileGuid',
+        'Flags',
+        'All User Profile Security Descriptor',
+        'CreatorSid',
+        'InterfaceGuid',
+        'SSID',
+        'Nla',
+        'NameLength',
+        'Name'
+    ]
+    
     CUSTOM_COLUMNS = {
         'All User Profile Security Descriptor':{
             'type':'utf-16le'
@@ -339,7 +353,8 @@ class RegistryHandler():
         
         self.INTERFACE_COLUMN_LISTING = []
         
-    def EnumerateRegistryValues(self):
+    def _GetWlanSvcKeys(self):
+        '''Insert wireless interface info into database'''
         reg_key = self.registry.open('Microsoft\\WlanSvc\\Interfaces')
         profile_list = []
         for interface_key in reg_key.subkeys():
@@ -373,14 +388,12 @@ class RegistryHandler():
                             self.INTERFACE_COLUMN_LISTING.append(key)
                             
                     profile_list.append(copy.deepcopy(profile_dict))
-                pass
-            pass
         
         self.outputDbHandler.CreateTableFromMapping(
             'WlanSvcInterfaceProfiles',
-            RegistryHandler.INTERFACE_COLUMN_MAPPING,
+            RegistryHandler.WLANSVCINTERFACEPROFILES_COLUMN_MAPPING,
             None,
-            self.INTERFACE_COLUMN_LISTING
+            RegistryHandler.WLANSVCINTERFACEPROFILES_COLUMN_ORDER
         )
         
         self.outputDbHandler.InsertFromListOfDicts(
@@ -388,7 +401,10 @@ class RegistryHandler():
             profile_list,
             self.INTERFACE_COLUMN_LISTING
         )
-    
+        
+    def EnumerateRegistryValues(self):
+        self._GetWlanSvcKeys()
+        
     def _GetValue(self,value):
         new_value = value.value()
         vname = value.name()
