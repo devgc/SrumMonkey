@@ -88,16 +88,17 @@ def GetOptions():
         dest='report_flag',
         action="store_false",
         default=True,
-        help='Do not run reports'
+        help='Do not run reports (Parsing/Database creation only)'
     )
     
-    options.add_argument(
-        '--reports_only',
-        dest='reports_only_flag',
-        action="store_true",
-        default=False,
-        help='Do not run reports'
-    )
+    # Not yet implemented #
+    # options.add_argument(
+    #     '--reports_only',
+    #     dest='reports_only_flag',
+    #     action="store_true",
+    #     default=False,
+    #     help='Do not run reports'
+    # )
     
     return options
 
