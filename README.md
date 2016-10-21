@@ -6,16 +6,17 @@
 The *xlsx_templates* directory contains YAML templates that are used to create the XLSX reports.
 
 ## Needed Libraries
-*pythone-registry*
-
-Git - https://github.com/williballenthin/python-registry
-
-*libesedb*
-
-Git - https://github.com/libyal/libesedb
-
-Binary Python Binding - https://github.com/log2timeline/l2tbinaries
-
-*xlsxwriter*
-
-Git - https://github.com/jmcnamara/XlsxWriter
+- pythone-registry
+  - Git</br> 
+  https://github.com/williballenthin/python-registry
+- libesedb
+  - Git</br> 
+  https://github.com/libyal/libesedb
+  - Binary Python Binding</br> 
+  https://github.com/log2timeline/l2tbinaries
+- PyYAML
+  - Get the compiled binaries</br>
+  http://pyyaml.org/wiki/PyYAML
+- xlsxwriter
+  - Git</br>
+  https://github.com/jmcnamara/XlsxWriter
