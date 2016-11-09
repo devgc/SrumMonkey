@@ -116,25 +116,25 @@ def Main():
     if os.path.isfile(options.output_db):
         os.remove(options.output_db)
     
-    if not options.reports_only_flag:
-        srumHandler = SrumHandler(
-            options
-        )
-        
-        srumHandler.ConvertDb()
-        
-        if options.software_hive is not None:
-            if os.path.isfile(options.software_hive):
-                #Enumerate Registry Here#
-                rhandler = RegistryHandler(
-                    options
-                )
-                
-                rhandler.EnumerateRegistryValues()
-                
-                pass
-            else:
-                logging.error('No such software_hive file: {}'.format(options.software_hive))
+    # if not options.reports_only_flag:
+    srumHandler = SrumHandler(
+        options
+    )
+    
+    srumHandler.ConvertDb()
+    
+    if options.software_hive is not None:
+        if os.path.isfile(options.software_hive):
+            #Enumerate Registry Here#
+            rhandler = RegistryHandler(
+                options
+            )
+            
+            rhandler.EnumerateRegistryValues()
+            
+            pass
+        else:
+            logging.error('No such software_hive file: {}'.format(options.software_hive))
     
     if options.report_flag is True:
         reportHandler = ReportHandler(
