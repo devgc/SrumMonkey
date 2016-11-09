@@ -6,7 +6,7 @@
 The *xlsx_templates* directory contains YAML templates that are used to create the XLSX reports.
 
 ## Needed Libraries
-- pythone-registry
+- python-registry
   - Git</br> 
   https://github.com/williballenthin/python-registry
 - libesedb
