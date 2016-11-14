@@ -78,8 +78,9 @@ def GetOptions():
         '--software_hive',
         dest='software_hive',
         action="store",
+        required=True,
         type=unicode,
-        default=None,
+        # default=None,
         help='SOFTWARE Hive for Interface Enumeration'
     )
     
@@ -116,25 +117,22 @@ def Main():
     if os.path.isfile(options.output_db):
         os.remove(options.output_db)
     
+    guid_table = None
+    
+    #Enumerate Registry Here#
+    rhandler = RegistryHandler(
+        options
+    )
+    rhandler.EnumerateRegistryValues()
+    guid_table = rhandler.GetGuidTable()
+    
     # if not options.reports_only_flag:
     srumHandler = SrumHandler(
-        options
+        options,
+        guid_table=guid_table
     )
     
     srumHandler.ConvertDb()
-    
-    if options.software_hive is not None:
-        if os.path.isfile(options.software_hive):
-            #Enumerate Registry Here#
-            rhandler = RegistryHandler(
-                options
-            )
-            
-            rhandler.EnumerateRegistryValues()
-            
-            pass
-        else:
-            logging.error('No such software_hive file: {}'.format(options.software_hive))
     
     if options.report_flag is True:
         reportHandler = ReportHandler(
@@ -352,24 +350,22 @@ class RegistryHandler():
     
     def __init__(self,options):
         self.options = options
-        hive = options.software_hive
-        self.registry = Registry.Registry(
-            hive
-        )
-        
+        self.guid_mapping = None
         self.outputDbConfig = DbConfig(
-            dbname=self.options.output_db
+            dbname=options.output_db
         )
-        
         self.outputDbHandler = DbHandler(
             self.outputDbConfig
         )
         
-        self.INTERFACE_COLUMN_LISTING = RegistryHandler.WLANSVCINTERFACEPROFILES_COLUMN_ORDER
-        
     def _GetWlanSvcKeys(self):
         '''Insert wireless interface info into database'''
-        reg_key = self.registry.open('Microsoft\\WlanSvc\\Interfaces')
+        try:
+            reg_key = self.registry.open('Microsoft\\WlanSvc\\Interfaces')
+        except Registry.RegistryKeyNotFoundException as error:
+            print(u'No WlanSvc found at Microsoft\\WlanSvc\\Interfaces')
+            return False
+        
         profile_list = []
         for interface_key in reg_key.subkeys():
             #Get Interface GUID#
@@ -419,8 +415,53 @@ class RegistryHandler():
             self.INTERFACE_COLUMN_LISTING
         )
         
+        return True
+        
+    def GetGuidTable(self):
+        '''Create a guid table from the guid_mapping'''
+        guid_table = {}
+        for key,value in self.guid_mapping.items():
+            guid_table[key] = value
+            guid_table[key+'LT'] = value+'LT'
+            
+        return guid_table
+        
+    def _EnumerateSrumExtensions(self):
+        '''Insert wireless interface info into database'''
+        reg_key = self.registry.open('Microsoft\\Windows NT\\CurrentVersion\\SRUM\\Extensions')
+        guid_map = {}
+        for guid_key in reg_key.subkeys():
+            #Get Interface GUID#
+            guid_name = guid_key.name()
+            desc = guid_key.value('(default)').value()
+            tname = RegistryHandler._GetTableName(desc)
+            guid_map[guid_name.upper()] = tname
+            pass
+        self.guid_mapping = guid_map
+    
+    @staticmethod
+    def _GetTableName(desc):
+        tname = desc
+        tname = tname.replace(" ", "")
+        return tname
+    
     def EnumerateRegistryValues(self):
-        self._GetWlanSvcKeys()
+        hive = self.options.software_hive
+        self.registry = Registry.Registry(
+            hive
+        )
+        self.INTERFACE_COLUMN_LISTING = RegistryHandler.WLANSVCINTERFACEPROFILES_COLUMN_ORDER
+        
+        self._EnumerateSrumExtensions()
+        result = self._GetWlanSvcKeys()
+        if not result:
+            # If there was no key, create the table with default columns #
+            self.outputDbHandler.CreateTableFromMapping(
+                'WlanSvcInterfaceProfiles',
+                RegistryHandler.WLANSVCINTERFACEPROFILES_COLUMN_MAPPING,
+                None,
+                RegistryHandler.WLANSVCINTERFACEPROFILES_COLUMN_ORDER
+            )
         
     def _GetValue(self,value):
         new_value = value.value()
@@ -517,16 +558,20 @@ class SrumHandler():
         }
     }
 
-    def __init__(self,options):
+    def __init__(self,options,guid_table=None):
         '''Create a SrumHandler
         
         Args:
-            options: Options'''
+            options: Options
+            guid_table: Optional guid table mapping'''
         self.srum_db = options.srum_db
         self.output_db = options.output_db
         
         self.esedb_file = pyesedb.file()
         self.esedb_file.open(self.srum_db)
+        
+        if guid_table:
+            SrumHandler.GUID_TABLES = guid_table
         
         self.outputDbConfig = DbConfig(
             dbname=self.output_db
@@ -551,7 +596,7 @@ class SrumHandler():
         for table in self.esedb_file.tables:
             #Enumerate if GUID Table#
             self.table_name = table.name
-            if self.table_name in SrumHandler.GUID_TABLES:
+            if self.table_name.upper() in SrumHandler.GUID_TABLES:
                 self.table_name = SrumHandler.GUID_TABLES[self.table_name]
                 
             ###Check if Table Name is GUID###
@@ -822,7 +867,7 @@ class ChannelHints(dict):
         self['NameLength'] = struct.unpack("I",data[0:4])[0]
         self['Name'] = data[4:4+self['NameLength']]
         self['SSID'] = data[36:36+32].encode('hex')
-        
+    
 class DbConfig():
     '''This tells the DbHandler what to connect too'''
     def __init__(self,dbname=None):
@@ -965,6 +1010,5 @@ class DbHandler():
         
         row = sql_c.fetchone()
     
-
 if __name__ == '__main__':
     Main()

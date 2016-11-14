@@ -17,20 +17,20 @@ xlsx_column_formats:
 sql_query: |
     SELECT
     SruDbIdMapTable.IdBlob AS ApplicationName,
-    ApplicationResourceUsageData.TimeStamp,
-    ApplicationResourceUsageData.UserId,
-    ApplicationResourceUsageData.ForegroundBytesRead,
-    ApplicationResourceUsageData.ForegroundBytesWritten,
-    ApplicationResourceUsageData.ForegroundNumReadOperations,
-    ApplicationResourceUsageData.ForegroundNumWriteOperations,
-    ApplicationResourceUsageData.ForegroundNumberOfFlushes,
-    ApplicationResourceUsageData.BackgroundBytesRead,
-    ApplicationResourceUsageData.BackgroundBytesWritten,
-    ApplicationResourceUsageData.BackgroundNumReadOperations,
-    ApplicationResourceUsageData.BackgroundNumWriteOperations,
-    ApplicationResourceUsageData.BackgroundNumberOfFlushes,
-    ApplicationResourceUsageData.AppId
+    ApplicationResourceUsageProvider.TimeStamp,
+    ApplicationResourceUsageProvider.UserId,
+    ApplicationResourceUsageProvider.ForegroundBytesRead,
+    ApplicationResourceUsageProvider.ForegroundBytesWritten,
+    ApplicationResourceUsageProvider.ForegroundNumReadOperations,
+    ApplicationResourceUsageProvider.ForegroundNumWriteOperations,
+    ApplicationResourceUsageProvider.ForegroundNumberOfFlushes,
+    ApplicationResourceUsageProvider.BackgroundBytesRead,
+    ApplicationResourceUsageProvider.BackgroundBytesWritten,
+    ApplicationResourceUsageProvider.BackgroundNumReadOperations,
+    ApplicationResourceUsageProvider.BackgroundNumWriteOperations,
+    ApplicationResourceUsageProvider.BackgroundNumberOfFlushes,
+    ApplicationResourceUsageProvider.AppId
     FROM
-    ApplicationResourceUsageData
-    INNER JOIN SruDbIdMapTable ON ApplicationResourceUsageData.AppId = SruDbIdMapTable.IdIndex
+    ApplicationResourceUsageProvider
+    INNER JOIN SruDbIdMapTable ON ApplicationResourceUsageProvider.AppId = SruDbIdMapTable.IdIndex
     ORDER BY ApplicationName

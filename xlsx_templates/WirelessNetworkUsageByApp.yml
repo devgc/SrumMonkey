@@ -16,16 +16,16 @@ xlsx_column_formats:
 #The SQLite Query to run#
 sql_query: |
     SELECT
-    NetworkUsageData.TimeStamp,
+    WindowsNetworkDataUsageMonitor.TimeStamp,
     SruDbIdMapTable.IdBlob,
     basename(SruDbIdMapTable.IdBlob) AS AppName,
-    NetworkUsageData.BytesSent,
-    NetworkUsageData.BytesRecvd,
+    WindowsNetworkDataUsageMonitor.BytesSent,
+    WindowsNetworkDataUsageMonitor.BytesRecvd,
     WlanSvcInterfaceProfiles.Name AS InterfaceName,
-    NetworkUsageData.UserId
+    WindowsNetworkDataUsageMonitor.UserId
     FROM
-    NetworkUsageData
+    WindowsNetworkDataUsageMonitor
     INNER JOIN WlanSvcInterfaceProfiles ON 
-    NetworkUsageData.L2ProfileId = WlanSvcInterfaceProfiles.ProfileIndex
+    WindowsNetworkDataUsageMonitor.L2ProfileId = WlanSvcInterfaceProfiles.ProfileIndex
     INNER JOIN SruDbIdMapTable ON 
-    NetworkUsageData.AppId = SruDbIdMapTable.IdIndex
+    WindowsNetworkDataUsageMonitor.AppId = SruDbIdMapTable.IdIndex
