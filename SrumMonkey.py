@@ -884,6 +884,8 @@ class DbHandler():
     
     def InsertFromListOfDicts(self,table,rows_to_insert,column_order,INSERT_STR=None):
         dbh = self.GetDbHandle()
+        # Set text_factory to str so we can insert raw bytes
+        dbh.text_factory = str
         sql_c = dbh.cursor()
         
         for row in rows_to_insert:
