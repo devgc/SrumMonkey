@@ -1,31 +1,33 @@
 ### A Report Tempate ###
 #The XLSX report to use#
 workbook_name: 'WirelessNetworkUsageByApp.xlsx'
-#The worksheet/tab to create the report in#
-worksheet_name: 'WirelessNetworkUsageByApp'
-#If you want to freeze panes#
-freeze_panes:
-    row: 1
-    columns: 7
-#If you want to special format columns#
-xlsx_column_formats:
-    0: 
-        column_type: datetime
-        strptime: '%Y-%m-%d %H:%M:%S'
-        format: {'num_format': 'mm/dd/yyyy hh:mm:ss'}
-#The SQLite Query to run#
-sql_query: |
-    SELECT
-    WindowsNetworkDataUsageMonitor.TimeStamp,
-    SruDbIdMapTable.IdBlob,
-    basename(SruDbIdMapTable.IdBlob) AS AppName,
-    WindowsNetworkDataUsageMonitor.BytesSent,
-    WindowsNetworkDataUsageMonitor.BytesRecvd,
-    WlanSvcInterfaceProfiles.Name AS InterfaceName,
-    WindowsNetworkDataUsageMonitor.UserId
-    FROM
-    WindowsNetworkDataUsageMonitor
-    INNER JOIN WlanSvcInterfaceProfiles ON 
-    WindowsNetworkDataUsageMonitor.L2ProfileId = WlanSvcInterfaceProfiles.ProfileIndex
-    INNER JOIN SruDbIdMapTable ON 
-    WindowsNetworkDataUsageMonitor.AppId = SruDbIdMapTable.IdIndex
+worksheets:
+  #The worksheet/tab to create the report in#
+  - worksheet_name: 'WirelessNetworkUsageByApp'
+    worksheet_type: 'records'
+    attributes:
+      #If you want to freeze panes#
+      freeze_panes:
+        row: 1
+      #If you want to special format columns#
+      xlsx_column_formats:
+        0:
+          column_type: datetime
+          strptime: '%Y-%m-%d %H:%M:%S'
+          format: {'num_format': 'mm/dd/yyyy hh:mm:ss'}
+      #The SQLite Query to run#
+      sql_query: |
+          SELECT
+          WindowsNetworkDataUsageMonitor.TimeStamp,
+          SruDbIdMapTable.IdBlob,
+          basename(SruDbIdMapTable.IdBlob) AS AppName,
+          WindowsNetworkDataUsageMonitor.BytesSent,
+          WindowsNetworkDataUsageMonitor.BytesRecvd,
+          WlanSvcInterfaceProfiles.Name AS InterfaceName,
+          WindowsNetworkDataUsageMonitor.UserId
+          FROM
+          WindowsNetworkDataUsageMonitor
+          INNER JOIN WlanSvcInterfaceProfiles ON
+          WindowsNetworkDataUsageMonitor.L2ProfileId = WlanSvcInterfaceProfiles.ProfileIndex
+          INNER JOIN SruDbIdMapTable ON
+          WindowsNetworkDataUsageMonitor.AppId = SruDbIdMapTable.IdIndex
