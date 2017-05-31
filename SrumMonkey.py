@@ -23,8 +23,10 @@ import os
 import re
 import argparse
 import copy
-import xlsxwriter
 import yaml
+
+from gchelpers.writers import XlsxHandler
+from gchelpers.db.DbHandler import DbConfig as GcHelperDbConfig
 
 logging.basicConfig(
     level = logging.DEBUG
@@ -84,6 +86,23 @@ def GetOptions():
         help='SOFTWARE Hive for Interface Enumeration'
     )
     
+    default_temp_folder = u"{}".format(
+        os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            u"xlsx_templates"
+        )
+    )
+    options.add_argument(
+        '--template_folder',
+        dest='template_folder',
+        action="store",
+        default=default_temp_folder,
+        type=unicode,
+        help='Folder that contains YML templates. [default: {}]'.format(
+            default_temp_folder
+        )
+    )
+    
     options.add_argument(
         '--no_reports',
         dest='report_flag',
@@ -135,166 +154,18 @@ def Main():
     srumHandler.ConvertDb()
     
     if options.report_flag is True:
-        reportHandler = ReportHandler(
-            options
+        db_config = GcHelperDbConfig(
+            db_type='sqlite',
+            db=options.output_db
         )
-        
-        reportHandler.RunReports()
-    
-class ReportHandler(object):
-    def __init__(self,options):
-        '''Create ReportHandler to generate reports based off of the xlsx_templates folder'''
-        self.options = options
-        self.output_db = self.options.output_db
-        self.sql_files = []
-        
-        self.dbConfig = DbConfig(
-            dbname=self.output_db
+        temp_manager = XlsxHandler.XlsxTemplateManager(
+            options.template_folder
         )
-        
-        self.dbHandler = DbHandler(
-            self.dbConfig
+        temp_manager.CreateReports(
+            db_config,
+            options.outpath
         )
     
-    def RunReports(self,sql_folder='xlsx_templates'):
-        '''Launch Report Creation'''
-        #Look in our sql dir for sql files to execute#
-        for subdir, dirs, files in os.walk(sql_folder):
-            #For each file#
-            for file in files:
-                #That ends with .sql#
-                if file.endswith('.yml'):
-                    self.sql_files.append(
-                        os.path.join(subdir, file)
-                    )
-        
-        for sqlfile in self.sql_files:
-            sqlfile_basename = os.path.basename(sqlfile)
-            print 'Processing File {}'.format(sqlfile_basename)
-            
-            reporter = Reporter(
-                self.options,
-                sqlfile,
-                self.dbHandler
-            )
-            
-            reporter.WriteReport()
-    
-class Reporter():
-    def __init__(self,options,sqlfile,dbHandler):
-        '''Create Reporter using options from .yml template'''
-        self.options = options
-        self.sqlfilename = sqlfile
-        self.dbHandler = dbHandler
-        
-        with open(self.sqlfilename,'r') as sqlfh:
-            data = sqlfh.read()
-            
-        sqlfh.close()
-        
-        self.properties = yaml.load(
-            data
-        )
-        
-    def WriteReport(self):
-        '''Write report to xlsx.'''
-        #Open XLSX File#
-        filename = os.path.join(
-            self.options.outpath,
-            self.properties['workbook_name']
-        )
-        logging.debug('creating workbook {}'.format(filename))
-        
-        #Create Workbook#
-        workbook = xlsxwriter.Workbook(
-            filename
-        )
-        
-        #Add Column Formats#
-        column_formats = {}
-        for column_number in self.properties['xlsx_column_formats'].keys():
-            if 'format' in self.properties['xlsx_column_formats'][column_number].keys():
-                column_formats[column_number] = workbook.add_format(
-                    self.properties['xlsx_column_formats'][column_number]['format']
-                )
-        
-        #Create Worksheet#
-        worksheet = workbook.add_worksheet(
-            self.properties['worksheet_name']
-        )
-        
-        #Iterate Records#
-        column_cnt = 0
-        row_start = 1
-        row_num = row_start
-        header_flag = False
-        
-        for column_names,record in self.dbHandler.FetchRecords(self.properties['sql_query']):
-            if not header_flag:
-                column_cnt = len(column_names)
-                worksheet.write_row(0,0,column_names)
-                header_flag = True
-                
-            row = tuple(record)
-            
-            c_cnt = 0
-            for value in row:
-                formatter = None
-                
-                #Check for special treatment for column#
-                if c_cnt in column_formats.keys():
-                    if 'format' in self.properties['xlsx_column_formats'][c_cnt].keys():
-                        formatter = column_formats[c_cnt]
-                    
-                    if 'column_type' in self.properties['xlsx_column_formats'][c_cnt].keys():
-                        '''Supported column_type's ['datetime']'''
-                        if self.properties['xlsx_column_formats'][c_cnt]['column_type'] == 'datetime':
-                            value = datetime.datetime.strptime(
-                                str(value),
-                                self.properties['xlsx_column_formats'][c_cnt]['strptime']
-                            )
-                    
-                worksheet.write(
-                    row_num,
-                    c_cnt,
-                    value,
-                    formatter
-                )
-                
-                c_cnt = c_cnt + 1
-            row_num = row_num+1
-        
-        if header_flag == False:
-            worksheet.write(
-                0,
-                0,
-                'No records returned for query',
-                None
-            )
-            worksheet.write(
-                1,
-                0,
-                "Query: {}".format(self.properties['sql_query']),
-                None
-            )
-        else:
-            worksheet.autofilter(
-                0,
-                0,
-                row_num - 1,
-                column_cnt - 1
-            )
-        
-            #Freeze Panes#
-            if 'freeze_panes' in self.properties:
-                worksheet.freeze_panes(
-                    self.properties['freeze_panes']['row'],
-                    self.properties['freeze_panes']['columns'],
-                )
-        
-        workbook.close()
-        logging.info('finished writing records')
-
 class RegistryHandler():
     '''Registry Operations'''
     WLANSVCINTERFACEPROFILES_COLUMN_MAPPING = {
