@@ -14,6 +14,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
 # implied.  See the License for the specific language governing
 # permissions and limitations under the License.
+__VERSION__ = '1.0.0'
 import sqlite3
 import struct
 import logging
@@ -82,7 +83,10 @@ from Registry import Registry
 def GetOptions():
     '''Get needed options for processesing'''
     
-    usage = """Copywrite G-C Partners, LLC 2015"""
+    usage = """SrumMonkey v{} - Copywrite G-C Partners, LLC
+
+SrumMonkey is a tool you can use to convert the Microsoft SRU edb database to a SQLite database.
+Further, you can create report templates to generate XLSX reports based off of YAML templates.""".format(__VERSION__)
     
     options = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
