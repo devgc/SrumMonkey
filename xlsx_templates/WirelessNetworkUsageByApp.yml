@@ -18,16 +18,15 @@ worksheets:
       #The SQLite Query to run#
       sql_query: |
           SELECT
-          WindowsNetworkDataUsageMonitor.TimeStamp,
-          SruDbIdMapTable.IdBlob,
-          basename(SruDbIdMapTable.IdBlob) AS AppName,
-          WindowsNetworkDataUsageMonitor.BytesSent,
-          WindowsNetworkDataUsageMonitor.BytesRecvd,
-          WlanSvcInterfaceProfiles.Name AS InterfaceName,
-          WindowsNetworkDataUsageMonitor.UserId
+            WindowsNetworkDataUsageMonitor.TimeStamp,
+            AppIdTable.IdBlob,
+            basename(AppIdTable.IdBlob) AS AppName,
+            WindowsNetworkDataUsageMonitor.BytesSent,
+            WindowsNetworkDataUsageMonitor.BytesRecvd,
+            WlanSvcInterfaceProfiles.Name AS InterfaceName,
+            UserIdTable.IdBlob
           FROM
-          WindowsNetworkDataUsageMonitor
-          INNER JOIN WlanSvcInterfaceProfiles ON
-          WindowsNetworkDataUsageMonitor.L2ProfileId = WlanSvcInterfaceProfiles.ProfileIndex
-          INNER JOIN SruDbIdMapTable ON
-          WindowsNetworkDataUsageMonitor.AppId = SruDbIdMapTable.IdIndex
+            WindowsNetworkDataUsageMonitor
+          INNER JOIN WlanSvcInterfaceProfiles ON WindowsNetworkDataUsageMonitor.L2ProfileId = WlanSvcInterfaceProfiles.ProfileIndex
+          INNER JOIN SruDbIdMapTable AS AppIdTable ON WindowsNetworkDataUsageMonitor.AppId = AppIdTable.IdIndex
+          INNER JOIN SruDbIdMapTable AS UserIdTable ON WindowsNetworkDataUsageMonitor.UserId = UserIdTable.IdIndex

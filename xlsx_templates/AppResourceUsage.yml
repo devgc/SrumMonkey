@@ -18,21 +18,21 @@ worksheets:
       #The SQLite Query to run#
       sql_query: |
           SELECT
-          SruDbIdMapTable.IdBlob AS ApplicationName,
-          ApplicationResourceUsageProvider.TimeStamp,
-          ApplicationResourceUsageProvider.UserId,
-          ApplicationResourceUsageProvider.ForegroundBytesRead,
-          ApplicationResourceUsageProvider.ForegroundBytesWritten,
-          ApplicationResourceUsageProvider.ForegroundNumReadOperations,
-          ApplicationResourceUsageProvider.ForegroundNumWriteOperations,
-          ApplicationResourceUsageProvider.ForegroundNumberOfFlushes,
-          ApplicationResourceUsageProvider.BackgroundBytesRead,
-          ApplicationResourceUsageProvider.BackgroundBytesWritten,
-          ApplicationResourceUsageProvider.BackgroundNumReadOperations,
-          ApplicationResourceUsageProvider.BackgroundNumWriteOperations,
-          ApplicationResourceUsageProvider.BackgroundNumberOfFlushes,
-          ApplicationResourceUsageProvider.AppId
+            AppIdTable.IdBlob AS ApplicationName,
+            ApplicationResourceUsageProvider.TimeStamp,
+            UserIdTable.IdBlob AS UserId,
+            ApplicationResourceUsageProvider.ForegroundBytesRead,
+            ApplicationResourceUsageProvider.ForegroundBytesWritten,
+            ApplicationResourceUsageProvider.ForegroundNumReadOperations,
+            ApplicationResourceUsageProvider.ForegroundNumWriteOperations,
+            ApplicationResourceUsageProvider.ForegroundNumberOfFlushes,
+            ApplicationResourceUsageProvider.BackgroundBytesRead,
+            ApplicationResourceUsageProvider.BackgroundBytesWritten,
+            ApplicationResourceUsageProvider.BackgroundNumReadOperations,
+            ApplicationResourceUsageProvider.BackgroundNumWriteOperations,
+            ApplicationResourceUsageProvider.BackgroundNumberOfFlushes
           FROM
-          ApplicationResourceUsageProvider
-          INNER JOIN SruDbIdMapTable ON ApplicationResourceUsageProvider.AppId = SruDbIdMapTable.IdIndex
+            ApplicationResourceUsageProvider
+          INNER JOIN SruDbIdMapTable AS AppIdTable ON ApplicationResourceUsageProvider.AppId = AppIdTable.IdIndex
+          INNER JOIN SruDbIdMapTable AS UserIdTable ON ApplicationResourceUsageProvider.UserId = UserIdTable.IdIndex
           ORDER BY ApplicationName
