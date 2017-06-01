@@ -68,9 +68,6 @@ logging.basicConfig(
     level = logging.DEBUG
 )
 
-#Import our custom SQLite user functions#
-from CustomSqlFunctions import *
-
 #Requires Metz' libesedb
 #https://github.com/libyal/libesedb
 #or you can find compiled python bindings for MacOSX and Window versions at
@@ -887,9 +884,6 @@ class DbHandler():
         dbh.row_factory = sqlite3.Row
         
         column_names = []
-        
-        #Register User Functions#
-        RegisterFunctions(dbh)
         
         sql_c = dbh.cursor()
         
