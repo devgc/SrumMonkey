@@ -24,6 +24,42 @@ import re
 import argparse
 import copy
 import yaml
+import pkg_resources
+import multiprocessing
+
+#From https://github.com/pyinstaller/pyinstaller/wiki/Recipe-Multiprocessing
+try:
+    # Python 3.4+
+    if sys.platform.startswith('win'):
+        import multiprocessing.popen_spawn_win32 as forking
+    else:
+        import multiprocessing.popen_fork as forking
+except ImportError:
+    import multiprocessing.forking as forking
+
+if sys.platform.startswith('win'):
+    # First define a modified version of Popen.
+    class _Popen(forking.Popen):
+        def __init__(self, *args, **kw):
+            if hasattr(sys, 'frozen'):
+                # We have to set original _MEIPASS2 value from sys._MEIPASS
+                # to get --onefile mode working.
+                os.putenv('_MEIPASS2', sys._MEIPASS)
+            try:
+                super(_Popen, self).__init__(*args, **kw)
+            finally:
+                if hasattr(sys, 'frozen'):
+                    # On some platforms (e.g. AIX) 'os.unsetenv()' is not
+                    # available. In those cases we cannot delete the variable
+                    # but only set it to the empty string. The bootloader
+                    # can handle this case.
+                    if hasattr(os, 'unsetenv'):
+                        os.unsetenv('_MEIPASS2')
+                    else:
+                        os.putenv('_MEIPASS2', '')
+
+    # Second override 'Popen' class with our modified version.
+    forking.Popen = _Popen
 
 from gchelpers.writers import XlsxHandler
 from gchelpers.db.DbHandler import DbConfig as GcHelperDbConfig
@@ -86,21 +122,13 @@ def GetOptions():
         help='SOFTWARE Hive for Interface Enumeration'
     )
     
-    default_temp_folder = u"{}".format(
-        os.path.join(
-            os.path.dirname(os.path.realpath(__file__)),
-            u"xlsx_templates"
-        )
-    )
     options.add_argument(
         '--template_folder',
         dest='template_folder',
         action="store",
-        default=default_temp_folder,
+        default=None,
         type=unicode,
-        help='Folder that contains YML templates. [default: {}]'.format(
-            default_temp_folder
-        )
+        help='Folder that contains YML templates.'
     )
     
     options.add_argument(
@@ -149,8 +177,25 @@ def Main():
             db_type='sqlite',
             db=options.output_db
         )
+        
+        # If no template folder was supplied, check source for default templates
+        template_folder = options.template_folder
+        if not template_folder:
+            if getattr(sys,'frozen',False):
+                location = os.path.join(sys._MEIPASS,'xlsx_templates')
+                location = os.path.join(location,'')
+                location = os.path.abspath(location)
+            else:
+                location = os.path.abspath(
+                    pkg_resources.resource_filename(
+                        'xlsx_templates',
+                        ''
+                    )
+                )
+            template_folder = location
+            
         temp_manager = XlsxHandler.XlsxTemplateManager(
-            options.template_folder
+            template_folder
         )
         temp_manager.CreateReports(
             db_config,
@@ -873,4 +918,5 @@ class DbHandler():
         row = sql_c.fetchone()
     
 if __name__ == '__main__':
+    multiprocessing.freeze_support()
     Main()

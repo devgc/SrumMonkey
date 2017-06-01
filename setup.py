@@ -19,6 +19,7 @@ setup(
     install_requires = [
         'gchelpers==0.0.1',
         'python_registry',
-        'XlsxWriter'
+        'XlsxWriter',
+        'pkg_resources'
     ]
 )
