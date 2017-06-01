@@ -443,6 +443,7 @@ class SrumHandler():
     CUSTOM_TABLES = {
         
     }
+    
     #How to decode a special column#
     CUSTOM_COLUMNS = {
         'EventTimestamp':{
@@ -709,8 +710,42 @@ class SrumHandler():
             elif custom_info['type'] == 'IdBlob':
                 if self.CURRENT_VALUES['IdType'] == 2 or self.CURRENT_VALUES['IdType'] == 1 or self.CURRENT_VALUES['IdType'] == 0:
                     value = data.decode('utf-16le')
+                elif self.CURRENT_VALUES['IdType'] == 3:
+                    sid = SID(data)
+                    if sid:
+                        value = str(sid)
                 
         return value
+
+class Authority(long):
+    def __new__(self, buf):
+       return long.__new__(self, struct.unpack(">Q",('\x00\x00'+buf[0:6]))[0])
+    
+class SubAuthority(long):
+    def __new__(self, buf):
+       return long.__new__(self, struct.unpack("<L",buf[0:4])[0])
+
+class SID(object):
+    def __init__(self,buf):
+        self.revision = struct.unpack("<B",buf[0:1])[0]
+        self.sub_authority_count = struct.unpack("<B",buf[1:2])[0]
+        self.authority = Authority(buf[2:8])
+        self.sub_authorities = []
+        
+        # Get sub authorities
+        offset = 8
+        for i in range(self.sub_authority_count):
+            self.sub_authorities.append(
+                SubAuthority(buf[offset:offset+4])
+            )
+            offset += 4
+    
+    def __str__(self):
+        return 'S-{}-{}-{}'.format(
+            self.revision,
+            self.authority,
+            '-'.join(str(x) for x in self.sub_authorities)
+        )
 
 def GetOleTimeStamp(raw_timestamp):
     '''Return Datetime from raw OleTimestamp'''
