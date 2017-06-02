@@ -5,10 +5,14 @@
 
 The *xlsx_templates* directory contains YAML templates that are used to create the XLSX reports.
 
-## Needed Libraries
-- python-registry
-  - Git</br> 
-  https://github.com/williballenthin/python-registry
+## YAML Templates
+SrumMonkey now uses the GcHelpers library.
+
+See [https://github.com/devgc/GcHelpers/wiki/XLSX-Templates](https://github.com/devgc/GcHelpers/wiki/XLSX-Templates) for documentation on creating YAML templates for XLSX report generation.
+
+See [https://github.com/devgc/SrumMonkey/tree/master/xlsx_templates](https://github.com/devgc/SrumMonkey/tree/master/xlsx_templates) for example templates.
+
+## Dependencies that are not installed with setup.py
 - libesedb
   - Git</br> 
   https://github.com/libyal/libesedb
@@ -17,6 +21,3 @@ The *xlsx_templates* directory contains YAML templates that are used to create t
 - PyYAML
   - Get the compiled binaries</br>
   http://pyyaml.org/wiki/PyYAML
-- xlsxwriter
-  - Git</br>
-  https://github.com/jmcnamara/XlsxWriter
