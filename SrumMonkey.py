@@ -80,6 +80,62 @@ import pyesedb
 #https://github.com/williballenthin/python-registry
 from Registry import Registry
 
+def SetProcessingArguments(parser):
+    parser.add_argument(
+        '--srum_db',
+        dest='srum_db',
+        action="store",
+        type=unicode,
+        default=None,
+        help='SRUM Database'
+    )
+    
+    parser.add_argument(
+        '--software_hive',
+        dest='software_hive',
+        action="store",
+        required=True,
+        type=unicode,
+        # default=None,
+        help='SOFTWARE Hive for Interface Enumeration'
+    )
+    
+    parser.add_argument(
+        '--outpath',
+        dest='outpath',
+        required=True,
+        action="store",
+        type=unicode,
+        default=None,
+        help='Output path where you want your reports and db'
+    )
+    
+    parser.add_argument(
+        '--no_reports',
+        dest='report_flag',
+        action="store_false",
+        default=True,
+        help='Do not run reports (Parsing/Database creation only)'
+    )
+    
+def SetReportingArguments(parser):
+    parser.add_argument(
+        '--database',
+        dest='database',
+        required=True,
+        action="store",
+        type=unicode,
+        help=u'Database to run reports on'
+    )
+    parser.add_argument(
+        '--outpath',
+        dest='outpath',
+        required=True,
+        action="store",
+        type=unicode,
+        help='Output Path.'
+    )
+
 def GetOptions():
     '''Get needed options for processesing'''
     
@@ -93,36 +149,6 @@ Further, you can create report templates to generate XLSX reports based off of Y
         description=(usage)
     )
     
-    ###Case Details###
-    options.add_argument(
-        '--srum_db',
-        dest='srum_db',
-        action="store",
-        type=unicode,
-        default=None,
-        help='SRUM Database'
-    )
-    
-    options.add_argument(
-        '--outpath',
-        dest='outpath',
-        required=True,
-        action="store",
-        type=unicode,
-        default=None,
-        help='Output path where you want your reports and db'
-    )
-    
-    options.add_argument(
-        '--software_hive',
-        dest='software_hive',
-        action="store",
-        required=True,
-        type=unicode,
-        # default=None,
-        help='SOFTWARE Hive for Interface Enumeration'
-    )
-    
     options.add_argument(
         '--template_folder',
         dest='template_folder',
@@ -132,12 +158,24 @@ Further, you can create report templates to generate XLSX reports based off of Y
         help='Folder that contains YML templates.'
     )
     
-    options.add_argument(
-        '--no_reports',
-        dest='report_flag',
-        action="store_false",
-        default=True,
-        help='Do not run reports (Parsing/Database creation only)'
+    subparsers = options.add_subparsers(
+        help='Either process or report command is required.',
+        dest='subparser_name'
+    )
+    processing_parser = subparsers.add_parser(
+        'process',
+        help='Processes SRUM and generate reports.',
+    )
+    SetProcessingArguments(
+        processing_parser
+    )
+    
+    reporting_parser = subparsers.add_parser(
+        'report',
+        help='Generate reports from an existing SrumMonkey database.',
+    )
+    SetReportingArguments(
+        reporting_parser
     )
     
     return options
@@ -147,38 +185,16 @@ def Main():
     arguements = GetOptions()
     options = arguements.parse_args()
     
-    if not os.path.isdir(options.outpath):
-        os.makedirs(options.outpath)
-        
-    options.output_db = os.path.join(options.outpath,'SRUM.db')
+    if options.subparser_name == 'report':
+        report_flag = True
+    else:
+        if options.report_flag:
+            report_flag = True
+        else:
+            report_flag = False
     
-    #If Database exists, delete it#
-    if os.path.isfile(options.output_db):
-        os.remove(options.output_db)
-    
-    guid_table = None
-    
-    #Enumerate Registry Here#
-    rhandler = RegistryHandler(
-        options
-    )
-    rhandler.EnumerateRegistryValues()
-    guid_table = rhandler.GetGuidTable()
-    
-    # if not options.reports_only_flag:
-    srumHandler = SrumHandler(
-        options,
-        guid_table=guid_table
-    )
-    
-    srumHandler.ConvertDb()
-    
-    if options.report_flag is True:
-        db_config = GcHelperDbConfig(
-            db_type='sqlite',
-            db=options.output_db
-        )
-        
+    # Get template folder
+    if report_flag is True:
         # If no template folder was supplied, check source for default templates
         template_folder = options.template_folder
         if not template_folder:
@@ -194,6 +210,41 @@ def Main():
                     )
                 )
             template_folder = location
+    
+    if options.subparser_name == 'process':
+        if not os.path.isdir(options.outpath):
+            os.makedirs(options.outpath)
+            
+        options.output_db = os.path.join(options.outpath,'SRUM.db')
+        
+        #If Database exists, delete it#
+        if os.path.isfile(options.output_db):
+            os.remove(options.output_db)
+        
+        guid_table = None
+        
+        #Enumerate Registry Here#
+        rhandler = RegistryHandler(
+            options
+        )
+        rhandler.EnumerateRegistryValues()
+        guid_table = rhandler.GetGuidTable()
+        
+        # if not options.reports_only_flag:
+        srumHandler = SrumHandler(
+            options,
+            guid_table=guid_table
+        )
+        
+        srumHandler.ConvertDb()
+    else:
+        options.output_db = options.database
+    
+    if report_flag is True:
+        db_config = GcHelperDbConfig(
+            db_type='sqlite',
+            db=options.output_db
+        )
             
         temp_manager = XlsxHandler.XlsxTemplateManager(
             template_folder
