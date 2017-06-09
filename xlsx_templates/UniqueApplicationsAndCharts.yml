@@ -1,0 +1,120 @@
+#The XLSX report to use#
+workbook_name: 'UniqueApplications.xlsx'
+worksheets:
+  #The worksheet/tab to create the report in#
+  - worksheet_name: 'UniqueAppsByCycle'
+    worksheet_type: 'records'
+    attributes:
+      #If you want to freeze panes#
+      freeze_panes:
+          row: 1
+      #If you want to special format columns#
+      xlsx_column_formats:
+      #The SQLite Query to run#
+      sql_query: |
+          SELECT
+              SruDbIdMapTable.IdBlob AS Fullname,
+              BasenameN(SruDbIdMapTable.IdBlob,2) AS Name,
+              SUM(ApplicationResourceUsageProvider.BackgroundBytesRead) AS "Total Background Read Bytes",
+              SUM(ApplicationResourceUsageProvider.BackgroundBytesWritten) AS "Total Background Write Bytes",
+              SUM(ApplicationResourceUsageProvider.BackgroundCycleTime) AS "Total Background Cycle Time",
+              SUM(ApplicationResourceUsageProvider.BackgroundNumReadOperations) AS "Total Background Read Ops",
+              SUM(ApplicationResourceUsageProvider.BackgroundNumWriteOperations) AS "Total Background Write Ops",
+              SUM(ApplicationResourceUsageProvider.ForegroundBytesRead) AS "Total Foreground Read Bytes",
+              SUM(ApplicationResourceUsageProvider.ForegroundBytesWritten) AS "Total Foreground Write Bytes",
+              SUM(ApplicationResourceUsageProvider.ForegroundCycleTime) AS "Total Foreground Cycle Time",
+              SUM(ApplicationResourceUsageProvider.ForegroundNumReadOperations) AS "Total Foreground Read Ops",
+              SUM(ApplicationResourceUsageProvider.ForegroundNumWriteOperations) AS "Total Foreground Write Ops",
+
+              SUM(ApplicationResourceUsageProvider.BackgroundCycleTime) +
+              SUM(ApplicationResourceUsageProvider.ForegroundCycleTime) AS "Total Cycle Time",
+
+              SUM(ApplicationResourceUsageProvider.BackgroundBytesRead) +
+              SUM(ApplicationResourceUsageProvider.BackgroundBytesWritten) AS "Total Bytes Background",
+
+              SUM(ApplicationResourceUsageProvider.ForegroundBytesRead) +
+              SUM(ApplicationResourceUsageProvider.ForegroundBytesWritten) AS "Total Bytes Foreground",
+
+              SUM(ApplicationResourceUsageProvider.BackgroundNumReadOperations) +
+              SUM(ApplicationResourceUsageProvider.BackgroundNumWriteOperations) AS "Total Operations Background",
+
+              SUM(ApplicationResourceUsageProvider.ForegroundNumReadOperations) +
+              SUM(ApplicationResourceUsageProvider.ForegroundNumWriteOperations) AS "Total Operations Foreground",
+
+              SUM(ApplicationResourceUsageProvider.BackgroundBytesRead) +
+              SUM(ApplicationResourceUsageProvider.BackgroundBytesWritten) +
+              SUM(ApplicationResourceUsageProvider.ForegroundBytesRead) +
+              SUM(ApplicationResourceUsageProvider.ForegroundBytesWritten) AS "Total Bytes",
+
+              SUM(ApplicationResourceUsageProvider.BackgroundNumReadOperations) +
+              SUM(ApplicationResourceUsageProvider.BackgroundNumWriteOperations) +
+              SUM(ApplicationResourceUsageProvider.ForegroundNumReadOperations) +
+              SUM(ApplicationResourceUsageProvider.ForegroundNumWriteOperations) AS "Total Operations"
+
+          FROM ApplicationResourceUsageProvider
+          INNER JOIN SruDbIdMapTable ON
+              ApplicationResourceUsageProvider.AppId = SruDbIdMapTable.IdIndex
+          GROUP BY ApplicationResourceUsageProvider.AppId
+          ORDER BY "Total Cycle Time" DESC
+  - worksheet_name: 'CycleChart'
+    worksheet_type: 'chart'
+    attributes:
+      insert_cell: 'A1'
+      chart:
+        type: 'column'
+        subtype: 'stacked'
+      legend:
+        position: 'left'
+      size:
+        x_scale: 50
+        y_scale: 2
+      series:
+        - name: 'UniqueAppsByCycle!$E$1'
+          categories: 'UniqueAppsByCycle!$B$1:$B${UniqueAppsByCycle[EndRow]}'
+          values: '=(UniqueAppsByCycle!$E$1:$E${UniqueAppsByCycle[EndRow]})'
+        - name: 'UniqueAppsByCycle!$J$1'
+          values: '=(UniqueAppsByCycle!$J$1:$J${UniqueAppsByCycle[EndRow]})'
+  - worksheet_name: 'BytesChart'
+    worksheet_type: 'chart'
+    attributes:
+      insert_cell: 'A1'
+      chart:
+        type: 'column'
+        subtype: 'stacked'
+      legend:
+        position: 'left'
+      size:
+        x_scale: 50
+        y_scale: 2
+      series:
+        - name: 'UniqueAppsByCycle!$C$1'
+          categories: 'UniqueAppsByCycle!$B$1:$B${UniqueAppsByCycle[EndRow]}'
+          values: '=(UniqueAppsByCycle!$C$1:$C${UniqueAppsByCycle[EndRow]})'
+        - name: 'UniqueAppsByCycle!$D$1'
+          values: '=(UniqueAppsByCycle!$D$1:$D${UniqueAppsByCycle[EndRow]})'
+        - name: 'UniqueAppsByCycle!$H$1'
+          values: '=(UniqueAppsByCycle!$H$1:$H${UniqueAppsByCycle[EndRow]})'
+        - name: 'UniqueAppsByCycle!$I$1'
+          values: '=(UniqueAppsByCycle!$I$1:$I${UniqueAppsByCycle[EndRow]})'
+  - worksheet_name: 'OperationsChart'
+    worksheet_type: 'chart'
+    attributes:
+      insert_cell: 'A1'
+      chart:
+        type: 'column'
+        subtype: 'stacked'
+      legend:
+        position: 'left'
+      size:
+        x_scale: 50
+        y_scale: 2
+      series:
+        - name: 'UniqueAppsByCycle!$F$1'
+          categories: 'UniqueAppsByCycle!$B$1:$B${UniqueAppsByCycle[EndRow]}'
+          values: '=(UniqueAppsByCycle!$F$1:$F${UniqueAppsByCycle[EndRow]})'
+        - name: 'UniqueAppsByCycle!$G$1'
+          values: '=(UniqueAppsByCycle!$G$1:$G${UniqueAppsByCycle[EndRow]})'
+        - name: 'UniqueAppsByCycle!$K$1'
+          values: '=(UniqueAppsByCycle!$K$1:$K${UniqueAppsByCycle[EndRow]})'
+        - name: 'UniqueAppsByCycle!$L$1'
+          values: '=(UniqueAppsByCycle!$L$1:$L${UniqueAppsByCycle[EndRow]})'
