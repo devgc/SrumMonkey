@@ -2,7 +2,7 @@
 workbook_name: 'UniqueApplications.xlsx'
 worksheets:
   #The worksheet/tab to create the report in#
-  - worksheet_name: 'UniqueAppsByCycle'
+  - worksheet_name: 'UniqueAppResourceUsage'
     worksheet_type: 'records'
     attributes:
       #If you want to freeze panes#
@@ -56,6 +56,31 @@ worksheets:
               ApplicationResourceUsageProvider.AppId = SruDbIdMapTable.IdIndex
           GROUP BY ApplicationResourceUsageProvider.AppId
           ORDER BY "Total Cycle Time" DESC
+  - worksheet_name: 'UniqueAppNetworkUsage'
+    worksheet_type: 'records'
+    attributes:
+      #If you want to freeze panes#
+      freeze_panes:
+          row: 1
+      #If you want to special format columns#
+      xlsx_column_formats:
+      #The SQLite Query to run#
+      sql_query: |
+          SELECT
+            SruDbIdMapTable.IdBlob AS Fullname,
+            BasenameN(SruDbIdMapTable.IdBlob,2) AS Name,
+            Sum(WindowsNetworkDataUsageMonitor.BytesSent) AS "Total Bytes Sent",
+            Sum(WindowsNetworkDataUsageMonitor.BytesRecvd) AS "Total Bytes Received",
+            SUM(WindowsNetworkDataUsageMonitor.BytesSent) +
+              SUM(WindowsNetworkDataUsageMonitor.BytesRecvd) AS "Total Bytes",
+            GROUP_CONCAT(DISTINCT WlanSvcInterfaceProfiles.Name) AS "Network Listing"
+          FROM
+            WindowsNetworkDataUsageMonitor
+          INNER JOIN SruDbIdMapTable ON WindowsNetworkDataUsageMonitor.AppId = SruDbIdMapTable.IdIndex
+          LEFT JOIN WlanSvcInterfaceProfiles ON WindowsNetworkDataUsageMonitor.L2ProfileId = WlanSvcInterfaceProfiles.ProfileIndex
+          GROUP BY WindowsNetworkDataUsageMonitor.AppId
+          ORDER BY "Total Bytes" DESC
+
   - worksheet_name: 'CycleChart'
     worksheet_type: 'chart'
     attributes:
@@ -69,11 +94,11 @@ worksheets:
         x_scale: 50
         y_scale: 2
       series:
-        - name: 'UniqueAppsByCycle!$E$1'
-          categories: 'UniqueAppsByCycle!$B$1:$B${UniqueAppsByCycle[EndRow]}'
-          values: '=(UniqueAppsByCycle!$E$1:$E${UniqueAppsByCycle[EndRow]})'
-        - name: 'UniqueAppsByCycle!$J$1'
-          values: '=(UniqueAppsByCycle!$J$1:$J${UniqueAppsByCycle[EndRow]})'
+        - name: 'UniqueAppResourceUsage!$E$1'
+          categories: 'UniqueAppResourceUsage!$B$1:$B${UniqueAppResourceUsage[EndRow]}'
+          values: '=(UniqueAppResourceUsage!$E$1:$E${UniqueAppResourceUsage[EndRow]})'
+        - name: 'UniqueAppResourceUsage!$J$1'
+          values: '=(UniqueAppResourceUsage!$J$1:$J${UniqueAppResourceUsage[EndRow]})'
   - worksheet_name: 'BytesChart'
     worksheet_type: 'chart'
     attributes:
@@ -87,15 +112,15 @@ worksheets:
         x_scale: 50
         y_scale: 2
       series:
-        - name: 'UniqueAppsByCycle!$C$1'
-          categories: 'UniqueAppsByCycle!$B$1:$B${UniqueAppsByCycle[EndRow]}'
-          values: '=(UniqueAppsByCycle!$C$1:$C${UniqueAppsByCycle[EndRow]})'
-        - name: 'UniqueAppsByCycle!$D$1'
-          values: '=(UniqueAppsByCycle!$D$1:$D${UniqueAppsByCycle[EndRow]})'
-        - name: 'UniqueAppsByCycle!$H$1'
-          values: '=(UniqueAppsByCycle!$H$1:$H${UniqueAppsByCycle[EndRow]})'
-        - name: 'UniqueAppsByCycle!$I$1'
-          values: '=(UniqueAppsByCycle!$I$1:$I${UniqueAppsByCycle[EndRow]})'
+        - name: 'UniqueAppResourceUsage!$C$1'
+          categories: 'UniqueAppResourceUsage!$B$1:$B${UniqueAppResourceUsage[EndRow]}'
+          values: '=(UniqueAppResourceUsage!$C$1:$C${UniqueAppResourceUsage[EndRow]})'
+        - name: 'UniqueAppResourceUsage!$D$1'
+          values: '=(UniqueAppResourceUsage!$D$1:$D${UniqueAppResourceUsage[EndRow]})'
+        - name: 'UniqueAppResourceUsage!$H$1'
+          values: '=(UniqueAppResourceUsage!$H$1:$H${UniqueAppResourceUsage[EndRow]})'
+        - name: 'UniqueAppResourceUsage!$I$1'
+          values: '=(UniqueAppResourceUsage!$I$1:$I${UniqueAppResourceUsage[EndRow]})'
   - worksheet_name: 'OperationsChart'
     worksheet_type: 'chart'
     attributes:
@@ -109,12 +134,30 @@ worksheets:
         x_scale: 50
         y_scale: 2
       series:
-        - name: 'UniqueAppsByCycle!$F$1'
-          categories: 'UniqueAppsByCycle!$B$1:$B${UniqueAppsByCycle[EndRow]}'
-          values: '=(UniqueAppsByCycle!$F$1:$F${UniqueAppsByCycle[EndRow]})'
-        - name: 'UniqueAppsByCycle!$G$1'
-          values: '=(UniqueAppsByCycle!$G$1:$G${UniqueAppsByCycle[EndRow]})'
-        - name: 'UniqueAppsByCycle!$K$1'
-          values: '=(UniqueAppsByCycle!$K$1:$K${UniqueAppsByCycle[EndRow]})'
-        - name: 'UniqueAppsByCycle!$L$1'
-          values: '=(UniqueAppsByCycle!$L$1:$L${UniqueAppsByCycle[EndRow]})'
+        - name: 'UniqueAppResourceUsage!$F$1'
+          categories: 'UniqueAppResourceUsage!$B$1:$B${UniqueAppResourceUsage[EndRow]}'
+          values: '=(UniqueAppResourceUsage!$F$1:$F${UniqueAppResourceUsage[EndRow]})'
+        - name: 'UniqueAppResourceUsage!$G$1'
+          values: '=(UniqueAppResourceUsage!$G$1:$G${UniqueAppResourceUsage[EndRow]})'
+        - name: 'UniqueAppResourceUsage!$K$1'
+          values: '=(UniqueAppResourceUsage!$K$1:$K${UniqueAppResourceUsage[EndRow]})'
+        - name: 'UniqueAppResourceUsage!$L$1'
+          values: '=(UniqueAppResourceUsage!$L$1:$L${UniqueAppResourceUsage[EndRow]})'
+  - worksheet_name: 'NetworkChart'
+    worksheet_type: 'chart'
+    attributes:
+      insert_cell: 'A1'
+      chart:
+        type: 'column'
+        subtype: 'stacked'
+      legend:
+        position: 'left'
+      size:
+        x_scale: 50
+        y_scale: 2
+      series:
+        - name: 'UniqueAppNetworkUsage!$C$1'
+          categories: 'UniqueAppNetworkUsage!$B$1:$B${UniqueAppNetworkUsage[EndRow]}'
+          values: '=(UniqueAppNetworkUsage!$C$1:$C${UniqueAppNetworkUsage[EndRow]})'
+        - name: 'UniqueAppNetworkUsage!$D$1'
+          values: '=(UniqueAppNetworkUsage!$D$1:$D${UniqueAppNetworkUsage[EndRow]})'
