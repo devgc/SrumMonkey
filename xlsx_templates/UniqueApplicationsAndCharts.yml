@@ -73,14 +73,13 @@ worksheets:
             Sum(WindowsNetworkDataUsageMonitor.BytesRecvd) AS "Total Bytes Received",
             SUM(WindowsNetworkDataUsageMonitor.BytesSent) +
               SUM(WindowsNetworkDataUsageMonitor.BytesRecvd) AS "Total Bytes",
-            GROUP_CONCAT(DISTINCT WlanSvcInterfaceProfiles.Name) AS "Network Listing"
+            GROUP_CONCAT(DISTINCT WlanSvcInterfaceProfiles.Name) AS "Unique Network Listing"
           FROM
             WindowsNetworkDataUsageMonitor
           INNER JOIN SruDbIdMapTable ON WindowsNetworkDataUsageMonitor.AppId = SruDbIdMapTable.IdIndex
           LEFT JOIN WlanSvcInterfaceProfiles ON WindowsNetworkDataUsageMonitor.L2ProfileId = WlanSvcInterfaceProfiles.ProfileIndex
           GROUP BY WindowsNetworkDataUsageMonitor.AppId
           ORDER BY "Total Bytes" DESC
-
   - worksheet_name: 'CycleChart'
     worksheet_type: 'chart'
     attributes:
