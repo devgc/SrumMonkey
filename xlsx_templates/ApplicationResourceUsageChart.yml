@@ -1,0 +1,105 @@
+### A Report Tempate ###
+#The XLSX report to use#
+workbook_name: 'ApplicationResourceUsageChart.xlsx'
+worksheets:
+  #The worksheet/tab to create the report in#
+  #The worksheet/tab to create the report in#
+  - worksheet_name: 'ResourceUsage'
+    worksheet_type: 'records'
+    attributes:
+      #If you want to freeze panes#
+      freeze_panes:
+          row: 1
+      #If you want to special format columns#
+      xlsx_column_formats:
+          0:
+              column_type: datetime
+              strptime: '%Y-%m-%d %H:%M:%S'
+              format: {'num_format': 'mm/dd/yyyy hh:mm:ss'}
+      #The SQLite Query to run#
+      sql_query: |
+          SELECT
+            ApplicationResourceUsageProvider.TimeStamp,
+            AppIdTable.IdBlob AS "Fullpath",
+            BasenameN(AppIdTable.IdBlob,2) AS "Name",
+            UserIdTable.IdBlob AS UserId,
+            ApplicationResourceUsageProvider.ForegroundCycleTime,
+            ApplicationResourceUsageProvider.BackgroundCycleTime,
+            ApplicationResourceUsageProvider.FaceTime,
+            ApplicationResourceUsageProvider.ForegroundContextSwitches,
+            ApplicationResourceUsageProvider.BackgroundContextSwitches,
+            ApplicationResourceUsageProvider.ForegroundBytesRead,
+            ApplicationResourceUsageProvider.ForegroundBytesWritten,
+            ApplicationResourceUsageProvider.ForegroundNumReadOperations,
+            ApplicationResourceUsageProvider.ForegroundNumWriteOperations,
+            ApplicationResourceUsageProvider.ForegroundNumberOfFlushes,
+            ApplicationResourceUsageProvider.BackgroundBytesRead,
+            ApplicationResourceUsageProvider.BackgroundBytesWritten,
+            ApplicationResourceUsageProvider.BackgroundNumReadOperations,
+            ApplicationResourceUsageProvider.BackgroundNumWriteOperations,
+            ApplicationResourceUsageProvider.BackgroundNumberOfFlushes
+          FROM
+            ApplicationResourceUsageProvider
+          INNER JOIN SruDbIdMapTable AS AppIdTable ON ApplicationResourceUsageProvider.AppId = AppIdTable.IdIndex
+          INNER JOIN SruDbIdMapTable AS UserIdTable ON ApplicationResourceUsageProvider.UserId = UserIdTable.IdIndex
+          ORDER BY "Name"
+  - worksheet_name: 'ForegroundAppUsage'
+    worksheet_type: 'records'
+    attributes:
+      #If you want to freeze panes#
+      freeze_panes:
+          row: 1
+      #If you want to special format columns#
+      xlsx_column_formats:
+          0:
+              column_type: datetime
+              strptime: '%Y-%m-%d %H:%M:%S'
+              format: {'num_format': 'mm/dd/yyyy hh:mm:ss'}
+      #The SQLite Query to run#
+      sql_query: |
+          SELECT
+            ApplicationResourceUsageProvider.TimeStamp AS "Timestamp",
+            AppIdTable.IdBlob AS "Fullpath",
+            BasenameN(AppIdTable.IdBlob,2) AS "Name",
+            UserIdTable.IdBlob AS "User ID",
+            sum(ApplicationResourceUsageProvider.ForegroundCycleTime) AS "ForegroundCycleTime",
+            sum(ApplicationResourceUsageProvider.ForegroundBytesRead) AS "ForegroundBytesRead",
+            sum(ApplicationResourceUsageProvider.ForegroundBytesWritten) AS "ForegroundBytesWritten",
+            sum(ApplicationResourceUsageProvider.ForegroundNumReadOperations) AS "ForegroundNumReadOperations",
+            sum(ApplicationResourceUsageProvider.ForegroundNumWriteOperations) AS "ForegroundNumWriteOperations"
+          FROM
+            ApplicationResourceUsageProvider
+          INNER JOIN SruDbIdMapTable AS AppIdTable ON ApplicationResourceUsageProvider.AppId = AppIdTable.IdIndex
+          INNER JOIN SruDbIdMapTable AS UserIdTable ON ApplicationResourceUsageProvider.UserId = UserIdTable.IdIndex
+          GROUP BY ApplicationResourceUsageProvider.AppId
+          ORDER BY "Foreground Cycle Time" DESC;
+  - worksheet_name: 'BackgroundAppUsage'
+    worksheet_type: 'records'
+    attributes:
+      #If you want to freeze panes#
+      freeze_panes:
+          row: 1
+      #If you want to special format columns#
+      xlsx_column_formats:
+          0:
+              column_type: datetime
+              strptime: '%Y-%m-%d %H:%M:%S'
+              format: {'num_format': 'mm/dd/yyyy hh:mm:ss'}
+      #The SQLite Query to run#
+      sql_query: |
+          SELECT
+            ApplicationResourceUsageProvider.TimeStamp AS "Timestamp",
+            AppIdTable.IdBlob AS "Fullpath",
+            BasenameN(AppIdTable.IdBlob,2) AS "Name",
+            UserIdTable.IdBlob AS "User ID",
+            sum(ApplicationResourceUsageProvider.BackgroundCycleTime) AS "BackgroundCycleTime",
+            sum(ApplicationResourceUsageProvider.BackgroundBytesRead) AS "BackgroundBytesRead",
+            sum(ApplicationResourceUsageProvider.BackgroundBytesWritten) AS "BackgroundBytesWritten",
+            sum(ApplicationResourceUsageProvider.BackgroundNumReadOperations) AS "BackgroundNumReadOperations",
+            sum(ApplicationResourceUsageProvider.BackgroundNumWriteOperations) AS "BackgroundNumWriteOperations"
+          FROM
+            ApplicationResourceUsageProvider
+          INNER JOIN SruDbIdMapTable AS AppIdTable ON ApplicationResourceUsageProvider.AppId = AppIdTable.IdIndex
+          INNER JOIN SruDbIdMapTable AS UserIdTable ON ApplicationResourceUsageProvider.UserId = UserIdTable.IdIndex
+          GROUP BY ApplicationResourceUsageProvider.AppId
+          ORDER BY "Background Cycle Time" DESC;

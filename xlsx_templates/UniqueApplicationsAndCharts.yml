@@ -15,6 +15,7 @@ worksheets:
           SELECT
               SruDbIdMapTable.IdBlob AS Fullname,
               BasenameN(SruDbIdMapTable.IdBlob,2) AS Name,
+              SUM(ApplicationResourceUsageProvider.FaceTime) AS "Total Face Time",
               SUM(ApplicationResourceUsageProvider.BackgroundBytesRead) AS "Total Background Read Bytes",
               SUM(ApplicationResourceUsageProvider.BackgroundBytesWritten) AS "Total Background Write Bytes",
               SUM(ApplicationResourceUsageProvider.BackgroundCycleTime) AS "Total Background Cycle Time",
@@ -93,12 +94,56 @@ worksheets:
         x_scale: 50
         y_scale: 2
       series:
-        - name: 'UniqueAppResourceUsage!$E$1'
+        - name: 'UniqueAppResourceUsage!$F$1'
           categories: 'UniqueAppResourceUsage!$B$1:$B${UniqueAppResourceUsage[EndRow]}'
+          values: '=(UniqueAppResourceUsage!$F$1:$F${UniqueAppResourceUsage[EndRow]})'
+        - name: 'UniqueAppResourceUsage!$K$1'
+          values: '=(UniqueAppResourceUsage!$K$1:$K${UniqueAppResourceUsage[EndRow]})'
+  - worksheet_name: 'BytesChart'
+    worksheet_type: 'chart'
+    attributes:
+      insert_cell: 'A1'
+      chart:
+        type: 'column'
+        subtype: 'stacked'
+      legend:
+        position: 'left'
+      size:
+        x_scale: 50
+        y_scale: 2
+      series:
+        - name: 'UniqueAppResourceUsage!$D$1'
+          categories: 'UniqueAppResourceUsage!$B$1:$B${UniqueAppResourceUsage[EndRow]}'
+          values: '=(UniqueAppResourceUsage!$D$1:$D${UniqueAppResourceUsage[EndRow]})'
+        - name: 'UniqueAppResourceUsage!$E$1'
           values: '=(UniqueAppResourceUsage!$E$1:$E${UniqueAppResourceUsage[EndRow]})'
+        - name: 'UniqueAppResourceUsage!$I$1'
+          values: '=(UniqueAppResourceUsage!$I$1:$I${UniqueAppResourceUsage[EndRow]})'
         - name: 'UniqueAppResourceUsage!$J$1'
           values: '=(UniqueAppResourceUsage!$J$1:$J${UniqueAppResourceUsage[EndRow]})'
-  - worksheet_name: 'BytesChart'
+  - worksheet_name: 'OperationsChart'
+    worksheet_type: 'chart'
+    attributes:
+      insert_cell: 'A1'
+      chart:
+        type: 'column'
+        subtype: 'stacked'
+      legend:
+        position: 'left'
+      size:
+        x_scale: 50
+        y_scale: 2
+      series:
+        - name: 'UniqueAppResourceUsage!$G$1'
+          categories: 'UniqueAppResourceUsage!$B$1:$B${UniqueAppResourceUsage[EndRow]}'
+          values: '=(UniqueAppResourceUsage!$G$1:$G${UniqueAppResourceUsage[EndRow]})'
+        - name: 'UniqueAppResourceUsage!$H$1'
+          values: '=(UniqueAppResourceUsage!$H$1:$H${UniqueAppResourceUsage[EndRow]})'
+        - name: 'UniqueAppResourceUsage!$L$1'
+          values: '=(UniqueAppResourceUsage!$L$1:$L${UniqueAppResourceUsage[EndRow]})'
+        - name: 'UniqueAppResourceUsage!$M$1'
+          values: '=(UniqueAppResourceUsage!$M$1:$M${UniqueAppResourceUsage[EndRow]})'
+  - worksheet_name: 'FaceTimeChart'
     worksheet_type: 'chart'
     attributes:
       insert_cell: 'A1'
@@ -114,34 +159,6 @@ worksheets:
         - name: 'UniqueAppResourceUsage!$C$1'
           categories: 'UniqueAppResourceUsage!$B$1:$B${UniqueAppResourceUsage[EndRow]}'
           values: '=(UniqueAppResourceUsage!$C$1:$C${UniqueAppResourceUsage[EndRow]})'
-        - name: 'UniqueAppResourceUsage!$D$1'
-          values: '=(UniqueAppResourceUsage!$D$1:$D${UniqueAppResourceUsage[EndRow]})'
-        - name: 'UniqueAppResourceUsage!$H$1'
-          values: '=(UniqueAppResourceUsage!$H$1:$H${UniqueAppResourceUsage[EndRow]})'
-        - name: 'UniqueAppResourceUsage!$I$1'
-          values: '=(UniqueAppResourceUsage!$I$1:$I${UniqueAppResourceUsage[EndRow]})'
-  - worksheet_name: 'OperationsChart'
-    worksheet_type: 'chart'
-    attributes:
-      insert_cell: 'A1'
-      chart:
-        type: 'column'
-        subtype: 'stacked'
-      legend:
-        position: 'left'
-      size:
-        x_scale: 50
-        y_scale: 2
-      series:
-        - name: 'UniqueAppResourceUsage!$F$1'
-          categories: 'UniqueAppResourceUsage!$B$1:$B${UniqueAppResourceUsage[EndRow]}'
-          values: '=(UniqueAppResourceUsage!$F$1:$F${UniqueAppResourceUsage[EndRow]})'
-        - name: 'UniqueAppResourceUsage!$G$1'
-          values: '=(UniqueAppResourceUsage!$G$1:$G${UniqueAppResourceUsage[EndRow]})'
-        - name: 'UniqueAppResourceUsage!$K$1'
-          values: '=(UniqueAppResourceUsage!$K$1:$K${UniqueAppResourceUsage[EndRow]})'
-        - name: 'UniqueAppResourceUsage!$L$1'
-          values: '=(UniqueAppResourceUsage!$L$1:$L${UniqueAppResourceUsage[EndRow]})'
   - worksheet_name: 'NetworkChart'
     worksheet_type: 'chart'
     attributes:
