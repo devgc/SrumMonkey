@@ -86,7 +86,7 @@ def SetProcessingArguments(parser):
         dest='srum_db',
         action="store",
         type=unicode,
-        default=None,
+        required=True,
         help='SRUM Database'
     )
     
@@ -96,8 +96,7 @@ def SetProcessingArguments(parser):
         action="store",
         required=True,
         type=unicode,
-        # default=None,
-        help='SOFTWARE Hive for Interface Enumeration'
+        help='SOFTWARE Hive'
     )
     
     parser.add_argument(
