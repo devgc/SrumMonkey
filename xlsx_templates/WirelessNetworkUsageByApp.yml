@@ -25,10 +25,15 @@ worksheets:
             WindowsNetworkDataUsageMonitor.BytesRecvd AS "Bytes Received",
             WindowsNetworkDataUsageMonitor.BytesSent +
               WindowsNetworkDataUsageMonitor.BytesRecvd AS "Total Bytes",
-            WlanSvcInterfaceProfiles.Name AS "Interface Name",
+            CASE
+              WHEN (WlanSvcInterfaceProfiles.Name IS NULL)
+                THEN "L2ProfileId: " || WindowsNetworkDataUsageMonitor.L2ProfileId
+              ELSE
+                WlanSvcInterfaceProfiles.Name
+            END AS "Interface Name",
             UserIdTable.IdBlob AS "User ID"
           FROM
             WindowsNetworkDataUsageMonitor
-          INNER JOIN WlanSvcInterfaceProfiles ON WindowsNetworkDataUsageMonitor.L2ProfileId = WlanSvcInterfaceProfiles.ProfileIndex
+          LEFT JOIN WlanSvcInterfaceProfiles ON WindowsNetworkDataUsageMonitor.L2ProfileId = WlanSvcInterfaceProfiles.ProfileIndex
           INNER JOIN SruDbIdMapTable AS AppIdTable ON WindowsNetworkDataUsageMonitor.AppId = AppIdTable.IdIndex
           INNER JOIN SruDbIdMapTable AS UserIdTable ON WindowsNetworkDataUsageMonitor.UserId = UserIdTable.IdIndex
