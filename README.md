@@ -4,7 +4,7 @@
 The *xlsx_templates* directory contains YAML templates that are used to create the XLSX reports.
 
 ## Usage
-SrumMonkey has to sub-commands. One for processing, and the other for re-generating reports:
+SrumMonkey has two sub-commands. One for processing, and the other for re-generating reports:
 ```
 usage: SrumMonkey.py [-h] [--template_folder TEMPLATE_FOLDER]
                      {process,report} ...
