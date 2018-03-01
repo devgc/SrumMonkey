@@ -8,8 +8,7 @@ setup(
     author='devgc',
     url='https://github.com/devgc',
     scripts = [
-        'SrumMonkey.py',
-        'CustomSqlFunctions.py'
+        'SrumMonkey.py'
     ],
     dependency_links = [
         'https://github.com/williballenthin/python-registry/tarball/master#egg=Registry-1.2.0',
